@@ -10,8 +10,8 @@ def select_committee(n_nodes, n_committee, exclude=[]):
     node_pool = list(set(range(n_nodes)) - set(exclude))
     return np.random.choice(node_pool, size=n_committee, replace=False)
     
-def run_all(nodes):
-    [n.train_k_epochs() for n in nodes]
+def run_all(nodes, k=1):
+    [n.train_k_epochs(k=k) for n in nodes]
     
 def collect_participants_weights(participants):
     return np.array([p.get_weights() for p in participants])

@@ -48,7 +48,7 @@ def main():
                 
         node_data = torch.from_numpy(train_data[node_indices])
         node_labels = torch.from_numpy(train_labels[node_indices])
-        
+
         node_trainset = MNISTSlice(
             root='../data', 
             data=node_data, 
@@ -66,10 +66,10 @@ def main():
             log_interval=args.log_interval)
         
         nodes.append(node)
-        
+    
     nodes = np.array(nodes)
     print('Done.')
-    
+
     # decentralized training
     print('starting decentralized training...')
     
@@ -85,15 +85,17 @@ def main():
             n_committee=args.committee_size,
             exclude=participant_ids)
 
+        participant_ids = committe_ids = range(6) ## <<<<<
         participants = nodes[participant_ids]
         committee = nodes[committe_ids]
         
-        run_all(nodes)
+        run_all(nodes, k=args.internal_epochs)
         
         print('collecting weights from participants...')
         w_array = collect_participants_weights(participants)
-        
+
         print('collecting votes from committee...')
+        print("W", [w['conv1.weight'][0, 0, 0, :2] for w in w_array]) # >>>
         votes = collect_committee_votes(committee, w_array)
         print(participant_ids, committe_ids)
         print(votes)
@@ -102,9 +104,13 @@ def main():
         print('reached union consensous of size {}'.format(len(union_consensus)))
         print(union_consensus)
         consensus_w = get_average_union_consensus(w_array, union_consensus)
+        
+        print("A ",[n._calc_loss(w_array[0]) for n in nodes[:5]])
+        print("B ",[n._calc_loss(consensus_w) for n in nodes[:5]])
+
         align_all_nodes_to_consensus(nodes, consensus_w)
         
-        if i % 10 == 1:
+        if i % 10 == 3:
             test(args, participants[0]._model, participants[0]._device, test_loader)
 
         

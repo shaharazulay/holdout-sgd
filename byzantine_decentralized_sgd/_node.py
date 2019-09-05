@@ -31,8 +31,13 @@ class Node(object):
         self._optimizer = optim.SGD(self._model.parameters(), lr=learning_rate, momentum=momentum)
         
     def train_k_epochs(self, k=1):
+        for epoch in range(k):
+            print('Node {}:: internal epoch {} out of {}'.format(self.id, epoch + 1, k))
+            self._train_one_epoch()
+
+    def _train_one_epoch(self):
         self._model.train()
-    
+        
         for batch_idx, (data, target) in enumerate(self._train_loader):
             data, target = data.to(self._device), target.to(self._device)
             self._optimizer.zero_grad()
@@ -45,14 +50,14 @@ class Node(object):
                 print('Node {}:: Batch [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     self.id, batch_idx * len(data), len(self._train_loader.dataset),
                     100. * batch_idx / len(self._train_loader), loss.item()))
-    
+            
     def _calc_loss(self, w):
         self._model.eval()
+    
         w_before = self.get_weights()
         self.set_weights(w)  # change weights to suggested weights w
-        
-        total_loss = 0
 
+        total_loss = 0
         with torch.no_grad():
             for data, target in self._train_loader:
                 data, target = data.to(self._device), target.to(self._device)
@@ -60,7 +65,7 @@ class Node(object):
                 total_loss += F.nll_loss(output, target, reduction='sum').item() # sum up batch loss
 
         total_loss /= len(self._train_loader.dataset)
-        
+    
         self.set_weights(w_before)  # return to original weights
         return total_loss
         
@@ -74,11 +79,11 @@ class Node(object):
         
         sorted_w_indices = np.argsort(loss_array)
         num_items_to_vote = int(len(w_array) * portion)
-        
+        print(self.id, "loss array:: ", loss_array)###
         return sorted_w_indices[:num_items_to_vote]
              
     def set_weights(self, w):
-        self._model.load_state_dict(w)
+        self._model.load_state_dict(copy.deepcopy(w))
         
     def get_weights(self):
-        return self._model.state_dict()
+        return copy.deepcopy(self._model.state_dict())

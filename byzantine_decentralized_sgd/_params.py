@@ -54,12 +54,15 @@ def add_decentralized_params(parser):
     parser.add_argument(
         '--committee-size',
         type=int, 
-        default=6, 
+        default=12, 
         help='number of nodes in committee (default: 100)')
     parser.add_argument(
         '--participants-size',
         type=int, 
-        default=6, 
+        default=12, 
         help='number of nodes selected as participants (default: 100)')        
-    
-    
+    parser.add_argument(
+        '--internal-epochs',
+        type=int, 
+        default=3, 
+        help='number of epochs each node should take before the consensus round starts (default: 5)')    
