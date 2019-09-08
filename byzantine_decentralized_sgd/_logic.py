@@ -1,6 +1,7 @@
 import numpy as np
 from collections import Counter
 from functools import reduce
+import progressbar
 
 
 def select_participants(n_nodes ,n_participants):
@@ -11,7 +12,20 @@ def select_committee(n_nodes, n_committee, exclude=[]):
     return np.random.choice(node_pool, size=n_committee, replace=False)
     
 def run_all(nodes, k=1):
-    [n.train_k_epochs(k=k) for n in nodes]
+    pbar = progressbar.ProgressBar(
+        maxval=len(nodes),
+        widgets=[progressbar.Bar('=', '[', ']'), ' ', 
+        progressbar.Percentage()])
+    
+    train_loss = []
+    pbar.start()
+    for n, n_idx in zip(nodes, range(len(nodes))):
+        pbar.update(n_idx + 1)
+        loss = n.train_k_epochs(k=k, verbose=False)
+        train_loss.append(loss.item())
+    pbar.finish()
+    
+    return np.mean(train_loss)
     
 def collect_participants_weights(participants):
     return np.array([p.get_weights() for p in participants])
@@ -27,13 +41,15 @@ def reach_union_consensus(votes, portion=2/3):
     n_votes_per_memeber = len(vote_values[0])
     
     flattened_votes = np.concatenate(vote_values).ravel()
+    
+    n_unique_recipients = len(np.unique(flattened_votes))
     vote_counts = Counter(flattened_votes)
     
     consensus_threshold = int(n_votes_per_memeber * portion)
     union_consensus = [
         vote for vote, count in vote_counts.items()
         if count > consensus_threshold]
-    return union_consensus
+    return union_consensus, n_unique_recipients
     
 def get_average_union_consensus(w_array, union_consensus):
     

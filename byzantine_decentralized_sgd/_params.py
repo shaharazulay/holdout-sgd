@@ -12,7 +12,7 @@ def add_common_params(parser):
     parser.add_argument(
         '--epochs', 
         type=int, 
-        default=10, 
+        default=20, 
         help='number of epochs to train (default: 10)')
     parser.add_argument(
         '--lr', 
@@ -44,7 +44,7 @@ def add_decentralized_params(parser):
     parser.add_argument(
         '--nodes',
         type=int, 
-        default=50, 
+        default=100, 
         help='number of nodes in decentralized setting (default: 1000)')
     parser.add_argument(
         '--sample-size',
@@ -54,15 +54,20 @@ def add_decentralized_params(parser):
     parser.add_argument(
         '--committee-size',
         type=int, 
-        default=12, 
+        default=30, 
         help='number of nodes in committee (default: 100)')
     parser.add_argument(
         '--participants-size',
         type=int, 
-        default=12, 
+        default=30, 
         help='number of nodes selected as participants (default: 100)')        
     parser.add_argument(
         '--internal-epochs',
         type=int, 
         default=3, 
-        help='number of epochs each node should take before the consensus round starts (default: 5)')    
+        help='number of epochs each node should take before the consensus round starts (default: 5)')  
+    parser.add_argument(
+        '--byzantine',
+        type=float, 
+        default=0.0, 
+        help='% of byzantine nodes inside the node pool (default: 0, range: 0-1')      

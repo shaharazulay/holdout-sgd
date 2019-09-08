@@ -1,6 +1,10 @@
 import torch
 import torch.nn.functional as F
 
+import matplotlib
+matplotlib.use("TkAgg")
+from matplotlib import pyplot as plt
+
 
 def train(args, model, device, train_loader, optimizer, epoch):
     model.train()
@@ -34,3 +38,59 @@ def test(args, model, device, test_loader):
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
+    
+    return 100. * correct / len(test_loader.dataset)
+        
+
+def plot_learning_curve(learning_curve, test_acc, n_participants, output_dir='.'):
+    fig, ax1 = plt.subplots()
+
+    color = 'tab:red'
+    ax1.set_xlabel('epochs')
+    ax1.set_ylabel('loss [avg]', color=color)
+    ax1.plot([c['train_loss'] for c in learning_curve], color=color)
+    ax1.tick_params(axis='y', labelcolor=color)
+
+    ax2 = ax1.twinx() 
+
+    color = 'tab:blue'
+    ax2.set_ylabel('union consensus', color=color)
+    ax2.plot([c['union_size'] for c in learning_curve], color=color)
+    ax2.plot([c['n_unique_recipients'] for c in learning_curve], color='tab:green')
+    ax2.set_ylim([0, n_participants])
+    ax2.legend(['union size', '#recipients'])
+    ax2.tick_params(axis='y', labelcolor=color)
+
+    fig.tight_layout() 
+    plt.title('Training Curve & Union Consensus')
+    fig.savefig(output_dir + '/train_curve_and_union_consensus.jpg')
+    
+    fig, ax1 = plt.subplots()
+
+    color = 'tab:red'
+    ax1.set_xlabel('epochs')
+    ax1.set_ylabel('loss [avg]', color=color)
+    ax1.plot([c['train_loss'] for c in learning_curve], color=color)
+    ax1.tick_params(axis='y', labelcolor=color)
+
+    ax2 = ax1.twinx() 
+
+    color = 'tab:blue'
+    ax2.set_ylabel('byzantine', color=color)
+    ax2.plot([c['n_byzantine_participants'] for c in learning_curve], color=color)
+    ax2.plot([c['n_byzantine_committee'] for c in learning_curve], color='tab:green')
+    ax2.plot([c['n_byzantine_consensus'] for c in learning_curve], color='tab:red')
+    ax2.set_ylim([0, n_participants])
+    ax2.legend(['# in participants', '# in committee', '# in union consensus'])
+    ax2.tick_params(axis='y', labelcolor=color)
+
+    fig.tight_layout() 
+    plt.title('Training Curve & Byzantine Effect')
+    fig.savefig(output_dir + '/train_curve_and_byzantine_effect.jpg')
+    
+    fig, ax1 = plt.subplots()
+    ax1.plot(test_acc)
+    ax1.set_xlabel('epochs')
+    ax1.set_ylabel('Acc [%]', color=color)
+    plt.title('Test Accuray [%]')
+    fig.savefig(output_dir + '/test_accuracy.jpg')
