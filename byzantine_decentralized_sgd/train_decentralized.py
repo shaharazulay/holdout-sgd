@@ -130,20 +130,12 @@ def main():
         print('Consensus: {}, #Byzantine nodes inside: {} --> {}'.format(
             union_consensus_ids, len(byzantine_consensus_ids), byzantine_consensus_ids))
         
-        # DEBUG ###
-        if len(byzantine_consensus_ids) > 0:  # <<<
-            print(
-                "DEBUG: ",
-                 nodes[-1]._calc_loss(),
-                 nodes[-1]._calc_loss(nodes[list(byzantine_consensus_ids)[0]].get_weights()),
-                 nodes[-1]._calc_loss(nodes[list(set(byzantine_idx) - byzantine_consensus_ids)[0]].get_weights())
-            )  # <<<
-        
         consensus_w = get_average_union_consensus(w_array, union_consensus)
         
-        # DEBUG ###
+        # DEBUG - will be removed later ###
         print("Losses before consensus ",[n._calc_loss() for n in nodes[-3:]])
         print("Losses after consensus ",[n._calc_loss(consensus_w) for n in nodes[-3:]])
+        ###################################
         
         align_all_nodes_to_consensus(nodes, consensus_w)
         
