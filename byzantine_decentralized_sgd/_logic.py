@@ -32,10 +32,9 @@ def _collect_one(c, w_array):
     return c.id, c.vote(w_array)
     
 def collect_committee_votes(committee, w_array):
-    votes = {}
     args_list = [(c, w_array) for c in committee]
     votes_list = async_run_in_parallel(_collect_one, args_list)
-    return dict(votes)
+    return dict(votes_list)
     
     
 def reach_union_consensus(votes, portion=2/3):
