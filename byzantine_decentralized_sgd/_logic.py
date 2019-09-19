@@ -3,6 +3,8 @@ from collections import Counter
 from functools import reduce
 import progressbar
 
+from _parallel import run_in_parallel, async_run_in_parallel
+
 
 def select_participants(n_nodes ,n_participants):
     return np.random.choice(n_nodes, size=n_participants, replace=False)
@@ -10,31 +12,31 @@ def select_participants(n_nodes ,n_participants):
 def select_committee(n_nodes, n_committee, exclude=[]):
     node_pool = list(set(range(n_nodes)) - set(exclude))
     return np.random.choice(node_pool, size=n_committee, replace=False)
-    
+
+
+def _run_one(node, k, verbose):
+    loss = node.train_k_epochs(k=k, verbose=verbose)
+    return loss.item()
+
 def run_all(nodes, k=1):
-    pbar = progressbar.ProgressBar(
-        maxval=len(nodes),
-        widgets=[progressbar.Bar('=', '[', ']'), ' ', 
-        progressbar.Percentage()])
-    
-    train_loss = []
-    pbar.start()
-    for n, n_idx in zip(nodes, range(len(nodes))):
-        pbar.update(n_idx + 1)
-        loss = n.train_k_epochs(k=k, verbose=False)
-        train_loss.append(loss.item())
-    pbar.finish()
-    
+    args_list = [(n, k, False) for n in nodes]
+    train_loss = async_run_in_parallel(_run_one, args_list)
     return np.mean(train_loss)
+    
     
 def collect_participants_weights(participants):
     return np.array([p.get_weights() for p in participants])
+
+
+def _collect_one(c, w_array):
+    return c.id, c.vote(w_array)
     
 def collect_committee_votes(committee, w_array):
     votes = {}
-    for c in committee:
-        votes[c.id] = c.vote(w_array)
-    return votes
+    args_list = [(c, w_array) for c in committee]
+    votes_list = async_run_in_parallel(_collect_one, args_list)
+    return dict(votes)
+    
     
 def reach_union_consensus(votes, portion=2/3):
     vote_values = list(votes.values())

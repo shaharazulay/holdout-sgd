@@ -111,6 +111,7 @@ def main():
         participants = nodes[participant_ids]
         committee = nodes[committe_ids]
         
+        print('training all nodes...')
         avg_train_loss = run_all(nodes, k=args.internal_epochs)
         
         print('collecting weights from participants...')
