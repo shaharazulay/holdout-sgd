@@ -24,10 +24,11 @@ def async_run_in_parallel(func, args_list):
     results_obj = [pool.apply_async(func, args, callback=results.append) for args in args_list]
     
     while len(results) != len(args_list):
+        print("WAITING")
         pbar.update(len(results))
         time.sleep(0.5)
     
+    print("DONE")
     pbar.finish()
-    pool.join()
     pool.close()
     return results
