@@ -52,7 +52,7 @@ def reach_union_consensus(votes, portion=2/3):
     n_unique_recipients = len(np.unique(flattened_votes))
     vote_counts = Counter(flattened_votes)
     
-    consensus_threshold = int(n_votes_per_memeber * portion)
+    consensus_threshold = int(float(n_votes_per_memeber) * portion)
     union_consensus = [
         vote for vote, count in vote_counts.items()
         if count > consensus_threshold]
