@@ -4,7 +4,7 @@ import progressbar
 
 
 def _create_pool():
-    return mp.Pool(10)#mp.cpu_count())
+    return mp.Pool(mp.cpu_count())
     
 def run_in_parallel(func, args_list):    
     pool = _create_pool()
@@ -24,11 +24,9 @@ def async_run_in_parallel(func, args_list):
     results_obj = [pool.apply_async(func, args, callback=results.append) for args in args_list]
     
     while len(results) != len(args_list):
-        print("WAITING")
         pbar.update(len(results))
         time.sleep(0.5)
     
-    print("DONE")
     pbar.finish()
     pool.close()
     return results
