@@ -81,7 +81,7 @@ class Node(object):
             loss_array.append(loss_w)
         
         sorted_w_indices = np.argsort(loss_array)
-        num_items_to_vote = int(len(w_array) * portion)
+        num_items_to_vote = int(float(len(w_array)) * portion)
         #print(self.id, "loss array:: ", loss_array)###
         return sorted_w_indices[:num_items_to_vote]
              
