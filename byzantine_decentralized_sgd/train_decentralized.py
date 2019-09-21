@@ -17,6 +17,8 @@ def main():
     add_decentralized_params(parser)
     args = parser.parse_args()
     
+    use_multiprocess = not(args.no_multiprocess)
+    
     trainset_full = datasets.MNIST('../data', train=True, download=True, transform=default_transform)
     
     torch.manual_seed(args.seed)
@@ -112,13 +114,13 @@ def main():
         committee = nodes[committe_ids]
         
         print('training all nodes...')
-        avg_train_loss = run_all(nodes, k=args.internal_epochs, multiprocess=args.multiprocess)
+        avg_train_loss = run_all(nodes, k=args.internal_epochs, multiprocess=use_multiprocess)
         
         print('collecting weights from participants...')
         w_array = collect_participants_weights(participants)
 
         print('collecting votes from committee...')
-        votes = collect_committee_votes(committee, w_array, multiprocess=args.multiprocess)
+        votes = collect_committee_votes(committee, w_array, multiprocess=use_multiprocess)
         print("Votes:", votes)
         
         union_consensus, n_unique_recipients = reach_union_consensus(votes)
