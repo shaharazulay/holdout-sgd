@@ -112,13 +112,13 @@ def main():
         committee = nodes[committe_ids]
         
         print('training all nodes...')
-        avg_train_loss = run_all(nodes, k=args.internal_epochs)
+        avg_train_loss = run_all(nodes, k=args.internal_epochs, multiprocess=args.multiprocess)
         
         print('collecting weights from participants...')
         w_array = collect_participants_weights(participants)
 
         print('collecting votes from committee...')
-        votes = collect_committee_votes(committee, w_array)
+        votes = collect_committee_votes(committee, w_array, multiprocess=args.multiprocess)
         print("Votes:", votes)
         
         union_consensus, n_unique_recipients = reach_union_consensus(votes)

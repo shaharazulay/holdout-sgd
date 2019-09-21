@@ -70,4 +70,9 @@ def add_decentralized_params(parser):
         '--byzantine',
         type=float, 
         default=0.0, 
-        help='% of byzantine nodes inside the node pool (default: 0, range: 0-1')      
+        help='% of byzantine nodes inside the node pool (default: 0, range: 0-1')   
+    parser.add_argument(
+        '--multiprocess',
+        action='store_false',
+        default=True,
+        help='turn multiprocess mode on/off (default: True)')   

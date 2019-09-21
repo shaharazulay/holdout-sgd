@@ -18,9 +18,12 @@ def _run_one(node, k, verbose):
     loss = node.train_k_epochs(k=k, verbose=verbose)
     return loss.item()
 
-def run_all(nodes, k=1):
-    args_list = [(n, k, True) for n in nodes]
-    train_loss = async_run_in_parallel(_run_one, args_list)
+def run_all(nodes, k, multiprocess):
+    if multiprocess:
+        args_list = [(n, k, False) for n in nodes]
+        train_loss = async_run_in_parallel(_run_one, args_list)
+    else:
+        train_loss = [_run_one(n, k, False) for n in nodes]
     return np.mean(train_loss)
     
     
@@ -31,9 +34,12 @@ def collect_participants_weights(participants):
 def _collect_one(c, w_array):
     return c.id, c.vote(w_array)
     
-def collect_committee_votes(committee, w_array):
-    args_list = [(c, w_array) for c in committee]
-    votes_list = async_run_in_parallel(_collect_one, args_list)
+def collect_committee_votes(committee, w_array, multiprocess):
+    if multiprocess:
+        args_list = [(c, w_array) for c in committee]
+        votes_list = async_run_in_parallel(_collect_one, args_list)
+    else:
+        votes_list = [_collect_one(c, w_array) for c in committee]
     return dict(votes_list)
     
     
