@@ -43,7 +43,7 @@ def collect_committee_votes(committee, w_array, multiprocess):
     return dict(votes_list)
     
     
-def reach_union_consensus(votes, portion=2/3):
+def reach_union_consensus(votes, portion=2.0/3):
     vote_values = list(votes.values())
     n_votes_per_memeber = len(vote_values[0])
     

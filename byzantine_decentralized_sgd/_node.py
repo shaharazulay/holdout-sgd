@@ -74,15 +74,14 @@ class Node(object):
         self.set_weights(w_before)  # return to original weights
         return total_loss
         
-    def vote(self, w_array, portion=2/3):
+    def vote(self, w_array, portion=2.0/3):
         loss_array = []
         for w in w_array:
             loss_w = self._calc_loss(w)
             loss_array.append(loss_w)
         
         sorted_w_indices = np.argsort(loss_array)
-        num_items_to_vote = int(float(len(w_array)) * portion)
-        #print(self.id, "loss array:: ", loss_array)###
+        num_items_to_vote = int(len(w_array) * portion)
         return sorted_w_indices[:num_items_to_vote]
              
     def set_weights(self, w):
