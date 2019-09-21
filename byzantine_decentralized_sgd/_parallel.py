@@ -4,7 +4,7 @@ import progressbar
 
 
 def _create_pool():
-    return mp.Pool(mp.cpu_count())
+    return mp.Pool(10)#mp.cpu_count())
     
 def run_in_parallel(func, args_list):    
     pool = _create_pool()
