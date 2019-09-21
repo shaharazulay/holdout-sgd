@@ -20,8 +20,7 @@ def _run_one(node, k, verbose):
 
 def run_all(nodes, k=1):
     args_list = [(n, k, True) for n in nodes]
-    train_loss = [_run_one(n, k, True) for n in nodes]  ##
-    #train_loss = async_run_in_parallel(_run_one, args_list)
+    train_loss = async_run_in_parallel(_run_one, args_list)
     return np.mean(train_loss)
     
     

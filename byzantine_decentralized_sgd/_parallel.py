@@ -28,5 +28,6 @@ def async_run_in_parallel(func, args_list):
         time.sleep(0.5)
     
     pbar.finish()
+    pool.join()
     pool.close()
     return results
