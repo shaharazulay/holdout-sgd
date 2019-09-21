@@ -136,7 +136,6 @@ def main():
         consensus_w = get_average_union_consensus(w_array, union_consensus)
         
         # DEBUG - will be removed later ###
-        print("concensus W:: ", consensus_w.keys())
         print("Losses before consensus ",[n._calc_loss() for n in nodes[-3:]])
         print("Losses after consensus ",[n._calc_loss(consensus_w) for n in nodes[-3:]])
         ###################################
