@@ -18,13 +18,8 @@ def _run_one(node, k, verbose):
     loss = node.train_k_epochs(k=k, verbose=verbose)
     return loss.item()
 
-def func(v):  ######
-    print("-->  " + str(v))
-    return(-1)
-    
 def run_all(nodes, k=1):
     args_list = [(n, k, True) for n in nodes]
-    print(async_run_in_parallel(func, [(1,), (2,), (3,), (4,), (5,)]))  ##
     train_loss = async_run_in_parallel(_run_one, args_list)
     return np.mean(train_loss)
     
