@@ -22,6 +22,7 @@ class Node(object):
         self._log_interval = log_interval
     
         use_cuda = torch.cuda.is_available()
+        print(use_cuda) ##
         kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
         self._device = torch.device("cuda" if use_cuda else "cpu")
         
