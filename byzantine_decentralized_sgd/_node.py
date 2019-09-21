@@ -39,20 +39,14 @@ class Node(object):
 
     def _train_one_epoch(self, verbose):
         self._model.train()
-        print("{}: A".format(self.id))
+
         for batch_idx, (data, target) in enumerate(self._train_loader):
-            print("{}: B".format(self.id))
             data, target = data.to(self._device), target.to(self._device)
             self._optimizer.zero_grad()
-            print("{}: C1".format(self.id))
-            output = self._model.forward(data)
-            print("{}: C2".format(self.id))
+            output = self._model(data)
             loss = F.nll_loss(output, target)
-            print("{}: C3".format(self.id))
             loss.backward()
-            print("{}: D".format(self.id))
             self._optimizer.step()
-            print("{}: F".format(self.id))
             
             if verbose and batch_idx % self._log_interval == 0:
                 print('Node {}:: Batch [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
