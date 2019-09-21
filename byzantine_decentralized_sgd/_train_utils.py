@@ -2,8 +2,12 @@ import torch
 import torch.nn.functional as F
 
 import matplotlib
-matplotlib.use("TkAgg")
-from matplotlib import pyplot as plt
+try:
+    matplotlib.use("TkAgg")
+    from matplotlib import pyplot as plt
+except:  # tkinter backend not working
+    matplotlib.use("agg")  
+    from matplotlib import pyplot as plt
 
 
 def train(args, model, device, train_loader, optimizer, epoch):
