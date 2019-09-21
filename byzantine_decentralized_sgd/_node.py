@@ -45,7 +45,7 @@ class Node(object):
             data, target = data.to(self._device), target.to(self._device)
             self._optimizer.zero_grad()
             print("{}: C1".format(self.id))
-            output = self._model(data)
+            output = self._model.forward(data)
             print("{}: C2".format(self.id))
             loss = F.nll_loss(output, target)
             print("{}: C3".format(self.id))
