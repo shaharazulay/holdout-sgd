@@ -1,3 +1,4 @@
+import collections
 import torch
 import torch.nn.functional as F
 
@@ -29,6 +30,8 @@ def test(args, model, device, test_loader):
     model.eval()
     test_loss = 0
     correct = 0
+    popular_misses = collections.Counter()
+    
     with torch.no_grad():
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
@@ -36,14 +39,20 @@ def test(args, model, device, test_loader):
             test_loss += F.nll_loss(output, target, reduction='sum').item() # sum up batch loss
             pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
-
+            
+            miss_cond = (pred != target.view_as(pred))
+            popular_misses.update(zip(
+                [int(_) for _ in target.view_as(pred)[miss_cond].numpy()],
+                [int(_) for _ in pred[miss_cond].numpy()]
+            ))
+                
     test_loss /= len(test_loader.dataset)
 
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
     
-    return 100. * correct / len(test_loader.dataset)
+    return 100. * correct / len(test_loader.dataset), popular_misses.most_common(n=5)
         
 
 def plot_learning_curve(learning_curve, test_acc, n_participants, output_dir='.'):
@@ -93,7 +102,7 @@ def plot_learning_curve(learning_curve, test_acc, n_participants, output_dir='.'
     fig.savefig(output_dir + '/train_curve_and_byzantine_effect.jpg')
     
     fig, ax1 = plt.subplots()
-    ax1.plot(test_acc)
+    ax1.plot([c['accuracy'] for c in test_acc])
     ax1.set_xlabel('epochs')
     ax1.set_ylabel('Acc [%]', color=color)
     plt.title('Test Accuray [%]')
