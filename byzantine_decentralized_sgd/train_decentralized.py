@@ -66,7 +66,6 @@ def main():
 
         if node_idx < n_byzantine:  # node was chosen as byzantine node
             byzantine_idx.append(node_idx)
-            print(node_trainset.train_labels[:15])
             node = ByzantineNode.create(mode=args.byzantine_mode)(            
                 node_idx,
                 node_trainset,
@@ -75,7 +74,6 @@ def main():
                 momentum=args.momentum,
                 log_interval=args.log_interval,
                 mode=args.byzantine_mode)
-            print(node_trainset.train_labels[:15])
         else:
             node = Node(
                 node_idx,
