@@ -144,8 +144,9 @@ def main():
         align_all_nodes_to_consensus(nodes, consensus_w)
         
         if i % 2 == 0:
-            accuracy = test(args, participants[0]._model, participants[0]._device, test_loader)
-            test_accuracy.append(accuracy)
+            accuracy, popular_misses = test(
+                args, participants[0]._model, participants[0]._device, test_loader)
+            test_accuracy.append({'accuracy': accuracy, 'popular_misses': popular_misses})
 
         learning_curve.append({
             'train_loss': avg_train_loss,
