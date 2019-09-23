@@ -70,7 +70,12 @@ def add_decentralized_params(parser):
         '--byzantine',
         type=float, 
         default=0.0, 
-        help='% of byzantine nodes inside the node pool (default: 0, range: 0-1')   
+        help='% of byzantine nodes inside the node pool (default: 0, range: 0-1') 
+    parser.add_argument(
+        '--byzantine-mode',
+        type=str, 
+        default='random', 
+        help='type of byzantine effect to be used (random or label swap) (default: random, in case of swap enter the format swap-{}-{}.')   
     parser.add_argument(
         '--no-multiprocess',
         action='store_true',
