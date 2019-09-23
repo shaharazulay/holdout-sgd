@@ -1,5 +1,6 @@
 import argparse 
 import numpy as np
+import json
 import torch
 from torchvision import datasets, transforms
 
@@ -155,9 +156,16 @@ def main():
             'n_byzantine_consensus': len(byzantine_consensus_ids)
         })
     
-    print(test_accuracy)
-    print(learning_curve)
     plot_learning_curve(learning_curve, test_accuracy, n_participants=args.participants_size)
+    
+    with open('raw_learning_curve.json', 'w') as f_raw:
+        json.dump(
+            {
+                'train': learning_curve,
+                'evalution': test_accuracy
+            },
+            f_raw
+        )
         
 if __name__ == '__main__':
     main()
