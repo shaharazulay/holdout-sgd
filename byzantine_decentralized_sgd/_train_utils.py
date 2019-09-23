@@ -4,9 +4,11 @@ import torch.nn.functional as F
 
 import matplotlib
 try:
+    print('THAT RAN')
     matplotlib.use("TkAgg")
     from matplotlib import pyplot as plt
 except:  # tkinter backend not working
+    print('THIS RAN')
     matplotlib.use("agg")  
     from matplotlib import pyplot as plt
 
