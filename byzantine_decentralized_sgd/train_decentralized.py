@@ -116,7 +116,8 @@ def main():
         committee = nodes[committe_ids]
         
         print('training all nodes...')
-        avg_train_loss = run_all(nodes, k=args.internal_epochs, multiprocess=use_multiprocess)
+        all_train_loss = run_all(nodes, k=args.internal_epochs, multiprocess=use_multiprocess)
+        avg_train_loss = np.mean([loss for id_, loss in all_train_loss if id_ not in byzantine_idx])
         
         print('collecting weights from participants...')
         w_array = collect_participants_weights(participants)

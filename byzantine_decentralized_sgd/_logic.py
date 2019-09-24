@@ -16,15 +16,15 @@ def select_committee(n_nodes, n_committee, exclude=[]):
 
 def _run_one(node, k, verbose):
     loss = node.train_k_epochs(k=k, verbose=verbose)
-    return loss.item()
+    return node.id, loss.item()
 
 def run_all(nodes, k, multiprocess):
     if multiprocess:
         args_list = [(n, k, False) for n in nodes]
-        train_loss = async_run_in_parallel(_run_one, args_list)
+        train_loss_list = async_run_in_parallel(_run_one, args_list)
     else:
-        train_loss = [_run_one(n, k, False) for n in nodes]
-    return np.mean(train_loss)
+        train_loss_list = [_run_one(n, k, False) for n in nodes]
+    return train_loss_list
     
     
 def collect_participants_weights(participants):
