@@ -45,14 +45,14 @@ def collect_committee_votes(committee, w_array, multiprocess):
     
 def reach_union_consensus(votes, portion=2.0/3):
     vote_values = list(votes.values())
-    n_votes_per_memeber = len(vote_values[0])
+    n_committee = len(vote_values)
     
     flattened_votes = np.concatenate(vote_values).ravel()
     
     n_unique_recipients = len(np.unique(flattened_votes))
     vote_counts = Counter(flattened_votes)
     
-    consensus_threshold = int(float(n_votes_per_memeber) * portion)
+    consensus_threshold = int(float(n_committee) * portion)
     union_consensus = [
         vote for vote, count in vote_counts.items()
         if count > consensus_threshold]

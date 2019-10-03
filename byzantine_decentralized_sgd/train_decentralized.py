@@ -124,7 +124,7 @@ def main():
 
         print('collecting votes from committee...')
         votes = collect_committee_votes(committee, w_array, multiprocess=use_multiprocess)
-        print("Votes:", votes)
+        print("Votes:", dict([(k, participant_ids[v]) for k, v in votes.items()]))
         
         union_consensus, n_unique_recipients = reach_union_consensus(votes)
         union_consensus_ids = participant_ids[union_consensus]
@@ -139,8 +139,8 @@ def main():
         consensus_w = get_average_union_consensus(w_array, union_consensus)
         
         # DEBUG - will be removed later ###
-        print("Losses before consensus ",[n._calc_loss() for n in nodes[-3:]])
-        print("Losses after consensus ",[n._calc_loss(consensus_w) for n in nodes[-3:]])
+        print("Losses before consensus ",[(n.id, n._calc_loss()) for n in committee])
+        print("Losses after consensus ",[(n.id, n._calc_loss(consensus_w)) for n in committee])
         ###################################
         
         align_all_nodes_to_consensus(nodes, consensus_w)
