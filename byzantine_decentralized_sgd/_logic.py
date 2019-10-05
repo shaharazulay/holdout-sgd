@@ -55,7 +55,7 @@ def reach_union_consensus(votes, portion=2.0/3):
     consensus_threshold = int(float(n_committee) * portion)
     union_consensus = [
         vote for vote, count in vote_counts.items()
-        if count > consensus_threshold]
+        if count >= consensus_threshold]
     return union_consensus, n_unique_recipients
     
 def get_average_union_consensus(w_array, union_consensus):
