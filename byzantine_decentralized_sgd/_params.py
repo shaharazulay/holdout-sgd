@@ -80,4 +80,10 @@ def add_decentralized_params(parser):
         '--no-multiprocess',
         action='store_true',
         default=False,
-        help='turn off multiprocess mode (default: False)')   
+        help='turn off multiprocess mode (default: False)')
+    parser.add_argument(
+        '--aggregator',
+        type=str,
+        default='union-consensus',
+        choices=['union-consensus', 'krum', 'average'],
+        help='Choice of aggregator (default: union-consensus)')
