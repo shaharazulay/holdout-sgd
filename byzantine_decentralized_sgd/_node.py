@@ -103,13 +103,14 @@ class Node(object):
 
     def set_gradients(self, grads):
         idx = 0
+        grads_ = grads.clone()
         for param in self._model.parameters():
             size_layer = len(param.grad.view(-1))
-            grads_layer = torch.Tensor(grads[idx: idx + size_layer]).reshape_as(param.grad).detach()
+            grads_layer = torch.Tensor(grads_[idx: idx + size_layer]).reshape_as(param.grad).detach()
             param.grad = grads_layer
             idx += size_layer
 
-        self._grads = grads
+        self._grads = grads_
 
     def take_step(self):
         self._model.train()

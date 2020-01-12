@@ -6,3 +6,8 @@ from functools import reduce
 def get_average_gradients(participants):
 	g_array = [p.get_gradients() for p in participants]
 	return torch.mean(torch.stack(g_array), dim=0)
+
+
+def get_std_gradients(participants):
+	g_array = [p.get_gradients() for p in participants]
+	return torch.std(torch.stack(g_array), dim=0)

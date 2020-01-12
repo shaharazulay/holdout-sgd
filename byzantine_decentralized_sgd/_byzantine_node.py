@@ -2,6 +2,7 @@ import torch
 
 from _node import Node
 from _model import Net
+from _krum import krum
 
 
 class ByzantineNode(object):
@@ -10,6 +11,8 @@ class ByzantineNode(object):
     def create(mode='random'):
         if mode == 'random':
             return RandomByzantineNode
+        elif mode == 'lp-norm':
+            return LpNormByzantineNode
         return SwapByzantineNode
             
             
@@ -75,9 +78,50 @@ class SwapByzantineNode(Node):
         
     @staticmethod
     def _suffle_labels(train_set, mode):
-        # mode = 'swap-{}-{}'
-        label_a = int(mode.split('-')[1])
-        label_b = int(mode.split('-')[2])
-        train_set.train_labels[train_set.train_labels == label_a] = -1
-        train_set.train_labels[train_set.train_labels == label_b] = label_a
-        train_set.train_labels[train_set.train_labels == -1] = label_b
+        # mode = 'swap-{}-{}' or 'swap-all'
+        def _swap_labels(train_set, label_a, label_b):
+            train_set.train_labels[train_set.train_labels == label_a] = -1
+            train_set.train_labels[train_set.train_labels == label_b] = label_a
+            train_set.train_labels[train_set.train_labels == -1] = label_b
+
+        if mode == 'swap-all':
+            _swap_labels(train_set, 0, 9)
+            _swap_labels(train_set, 1, 8)
+            _swap_labels(train_set, 2, 7)
+            _swap_labels(train_set, 3, 6)
+            _swap_labels(train_set, 4, 5)
+        else:
+            label_a = int(mode.split('-')[1])
+            label_b = int(mode.split('-')[2])
+            _swap_labels(train_set, label_a, label_b)
+
+
+class LpNormByzantineNode(Node):
+
+    def __init__(
+            self,
+            node_id,
+            train_set,
+            batch_size=64,
+            learning_rate=0.01,
+            momentum=0.5,
+            log_interval=10,
+            mode=None):
+
+        super(LpNormByzantineNode, self).__init__(
+            node_id,
+            train_set,
+            batch_size,
+            learning_rate,
+            momentum,
+            log_interval)
+
+    def setup_attack(self, mu, std, gamma):
+        B = mu.clone()
+        B += gamma * std.clone()
+        self.set_gradients(B)
+
+
+
+
+

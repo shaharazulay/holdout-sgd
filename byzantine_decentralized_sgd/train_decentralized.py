@@ -11,7 +11,8 @@ from _byzantine_node import ByzantineNode
 from _data_utils import default_transform, MNISTSlice
 from _logic import *
 from _krum import krum, _distance
-from _average import get_average_gradients
+from _average import get_average_gradients, get_std_gradients
+from _attack import setup_lp_norm_attack
 
         
 def main():
@@ -102,28 +103,41 @@ def main():
     test_accuracy = []
     for i in range(args.epochs):
         print('epoch:: {} out of {}'.format(i + 1, args.epochs))
-        
-        participant_ids = select_participants(
-            n_nodes=args.nodes,
-            n_participants=args.participants_size)
 
-        committe_ids = select_committee(
-            n_nodes=args.nodes,
-            n_committee=args.committee_size,
-            exclude=participant_ids)
-            
-        byzantine_participants_ids = set(participant_ids).intersection(set(byzantine_idx))
-        print('{} byzantine participants selected...'.format(len(byzantine_participants_ids)))
-        
-        byzantine_committee_ids = set(committe_ids).intersection(set(byzantine_idx))
-        print('{} byzantine committe selected...'.format(len(byzantine_committee_ids)))
-        
+        while True:
+            participant_ids = select_participants(
+                n_nodes=args.nodes,
+                n_participants=args.participants_size)
+
+            committe_ids = select_committee(
+                n_nodes=args.nodes,
+                n_committee=args.committee_size,
+                exclude=participant_ids)
+
+            byzantine_participants_ids = set(participant_ids).intersection(set(byzantine_idx))
+            print('{} byzantine participants selected...'.format(len(byzantine_participants_ids)))
+
+            byzantine_committee_ids = set(committe_ids).intersection(set(byzantine_idx))
+            print('{} byzantine committe selected...'.format(len(byzantine_committee_ids)))
+
+            if (len(byzantine_participants_ids) < args.participants_size / 2) and (len(byzantine_committee_ids) < args.committee_size / 2):
+                break
+
         participants = nodes[participant_ids]
         committee = nodes[committe_ids]
         
         print('training all nodes...')
         all_train_loss = run_all(participants, k=args.internal_epochs, multiprocess=use_multiprocess)
         avg_train_loss = np.mean([loss for id_, loss in all_train_loss if id_ not in byzantine_idx])
+
+        # setting up the Lp-norm attack (if there are byzantines)
+        if args.byzantine_mode == 'lp-norm':
+
+            honest_participants = [n for n in participants if n.id not in byzantine_idx]
+            mu = get_average_gradients(honest_participants)
+            std = get_std_gradients(honest_participants)
+            gamma = setup_lp_norm_attack(participants, byzantine_idx, mu, std, consensus_w, f=len(byzantine_participants_ids))
+            print('Chosen Lp-norm attack gamma: {}'.format(gamma))
 
         if args.aggregator == 'union-consensus':
 
@@ -159,18 +173,12 @@ def main():
         elif args.aggregator == 'krum':
 
             print('collecting gradients from participants and running krum...')
-            krum_node_idx, krum_scores = krum(participants)
+            krum_node_idx, krum_scores = krum(participants, f=len(byzantine_participants_ids))
             selected_node = participants[krum_node_idx]
 
             is_byzantine_selected = int(selected_node.id in byzantine_participants_ids)
             print('Selected node by krum: {}, is byzantine: {}'.format(selected_node.id, is_byzantine_selected))
-            #print('Krum scores: {}'.format(krum_scores))
-
-            honest_participants = [n for n in participants if n.id not in byzantine_idx]
-            average_grads = get_average_gradients(honest_participants)
-            average_spread = float(np.mean([_distance(p.get_gradients(), average_grads) for p in honest_participants]))
-            grad_convergence = float(np.linalg.norm(average_grads, ord=2))
-            print('Krum spread: {}, grad convergence: {}'.format(average_spread, grad_convergence))
+            print('Krum selected score: {}'.format(krum_scores[krum_node_idx]))
 
             consensus_w = selected_node.get_weights()
             align_all_nodes_to_consensus(nodes, consensus_w)
@@ -179,8 +187,7 @@ def main():
                 'train_loss': avg_train_loss,
                 'selected_node': selected_node.id,
                 'is_byzantine_selected': is_byzantine_selected,
-                'average_spread': average_spread,
-                'grad_convergence': grad_convergence
+                'gamma': gamma
             })
 
         else:  # average

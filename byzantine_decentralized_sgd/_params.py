@@ -75,7 +75,7 @@ def add_decentralized_params(parser):
         '--byzantine-mode',
         type=str, 
         default='random', 
-        help='type of byzantine effect to be used (random or label swap) (default: random, in case of swap enter the format swap-{}-{}.')   
+        help='type of byzantine effect to be used (random, label swap, np-norm) (default: random, in case of swap enter the format swap-{}-{}.')
     parser.add_argument(
         '--no-multiprocess',
         action='store_true',
