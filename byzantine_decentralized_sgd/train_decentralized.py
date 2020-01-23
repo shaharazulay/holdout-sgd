@@ -13,6 +13,7 @@ from _logic import *
 from _krum import krum, _distance
 from _average import get_average_gradients, get_std_gradients
 from _attack import setup_lp_norm_attack
+from _trimmed_mean import trimmed_mean
 
         
 def main():
@@ -147,7 +148,6 @@ def main():
             print('collecting votes from committee...')
             votes = collect_committee_votes(committee, w_array, multiprocess=use_multiprocess)
             print("Votes:", dict([(k, participant_ids[v]) for k, v in votes.items()]))
-
             union_consensus, n_unique_recipients = reach_union_consensus(votes)
             union_consensus_ids = participant_ids[union_consensus]
 
@@ -167,7 +167,7 @@ def main():
                 'n_unique_recipients': n_unique_recipients,
                 'n_byzantine_participants': len(byzantine_participants_ids),
                 'n_byzantine_committee': len(byzantine_committee_ids),
-                'n_byzantine_consensus': len(byzantine_consensus_ids)
+                'n_byzantine_consensus': len(byzantine_consensus_ids),
             })
 
         elif args.aggregator == 'krum':
@@ -187,7 +187,25 @@ def main():
                 'train_loss': avg_train_loss,
                 'selected_node': selected_node.id,
                 'is_byzantine_selected': is_byzantine_selected,
-                'gamma': gamma
+            })
+
+        elif args.aggregator == 'trimmed-mean':
+
+            print('collecting gradients from participants and running trimmed mean...')
+            trimmed_mean_grads = trimmed_mean(participants, f=len(byzantine_participants_ids))
+
+            # simulate the step take by the trimmed mean gradient
+            honest_participants = [n for n in participants if n.id not in byzantine_idx]
+            proxy_node = honest_participants[0]
+            proxy_node.set_weights(consensus_w)
+            proxy_node.set_gradients(trimmed_mean_grads)
+            proxy_node.take_step()
+
+            consensus_w = proxy_node.get_weights()
+            align_all_nodes_to_consensus(nodes, consensus_w)
+
+            learning_curve.append({
+                'train_loss': avg_train_loss
             })
 
         else:  # average
@@ -209,29 +227,9 @@ def main():
                 'train_loss': avg_train_loss
             })
 
-        # # DEBUG - will be removed later ###
-        # from _krum import _distance
-        #
-        # for p in participants[1:]:
-        #     print('NORM PAIRS: ', _distance(participants[0].get_weights(), p.get_weights()))
-        # print('NORM CENTER:', _distance(participants[0].get_weights(), consensus_w))
-        #
-        # print('-- ACC PAIRS START --')
-        # for p in participants[1:]:
-        #     accuracy, _ = test(
-        #         args, participants[0]._model, participants[0]._device, p._train_loader)
-        # print('-- ACC PAIRS END --')
-        #
-        # print("Losses before consensus ",[(n.id, n._calc_loss()) for n in committee])
-        # print("Losses after consensus ",[(n.id, n._calc_loss(consensus_w)) for n in committee])
-        # if len(byzantine_consensus_ids):
-        #     w_byzantine = nodes[list(byzantine_consensus_ids)[0]].get_weights()
-        #     print(
-        #     "Losses after chosen byzantine {}".format(list(byzantine_consensus_ids)[0]),
-        #     [(n.id, n._calc_loss(w_byzantine)) for n in committee])
-        # ###################################
+        if args.byzantine_mode == 'lp-norm':
+            learning_curve[-1]['gamma'] = gamma
 
-        
         if i % 1 == 0:
             accuracy, popular_misses = test(
                 args, participants[0]._model, participants[0]._device, test_loader)
