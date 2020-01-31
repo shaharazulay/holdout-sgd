@@ -40,13 +40,15 @@ def main():
     train_data = trainset_full.train_data.numpy()
     train_label_indices = {}
     
-    # distribute data accross nodes
+    # distribute data across nodes
     print('setting up the simulation:: creating {} distributed nodes...'.format(args.nodes))
     
     for digit in range(10):
         train_label_indices[digit] = np.where(train_labels == digit)[0]
 
     n_byzantine = int(args.nodes * args.byzantine)
+    expected_n_byzantine_committee = int(np.ceil(args.committee_size * args.expected_byzantine))
+    expected_n_byzantine_participants = int(np.ceil(args.participants_size * args.expected_byzantine))
     
     nodes = []
     byzantine_idx = []
@@ -97,6 +99,9 @@ def main():
 
     # decentralized training
     print('starting decentralized training...')
+    print(' ==> expecting {} byzantines in each committee, and {} byzantines in each participants group.'.format(
+        expected_n_byzantine_committee, expected_n_byzantine_participants))
+
     consensus_w = honest_nodes[0].get_weights()
     align_all_nodes_to_consensus(nodes, consensus_w)
 
@@ -128,7 +133,7 @@ def main():
         committee = nodes[committe_ids]
         
         print('training all nodes...')
-        all_train_loss = run_all(participants, k=args.internal_epochs, multiprocess=use_multiprocess)
+        all_train_loss = run_all(participants, multiprocess=use_multiprocess)
         avg_train_loss = np.mean([loss for id_, loss in all_train_loss if id_ not in byzantine_idx])
 
         # setting up the Lp-norm attack (if there are byzantines)
@@ -137,7 +142,7 @@ def main():
             honest_participants = [n for n in participants if n.id not in byzantine_idx]
             mu = get_average_gradients(honest_participants)
             std = get_std_gradients(honest_participants)
-            gamma = setup_lp_norm_attack(participants, byzantine_idx, mu, std, consensus_w, f=len(byzantine_participants_ids))
+            gamma = setup_lp_norm_attack(participants, byzantine_idx, mu, std, consensus_w, f=expected_n_byzantine_participants)
             print('Chosen Lp-norm attack gamma: {}'.format(gamma))
 
         if args.aggregator == 'union-consensus':
@@ -146,9 +151,9 @@ def main():
             w_array = collect_participants_weights(participants)
 
             print('collecting votes from committee...')
-            votes = collect_committee_votes(committee, w_array, multiprocess=use_multiprocess)
+            votes = collect_committee_votes(committee, w_array, f=expected_n_byzantine_participants, multiprocess=True)
             print("Votes:", dict([(k, participant_ids[v]) for k, v in votes.items()]))
-            union_consensus, n_unique_recipients = reach_union_consensus(votes)
+            union_consensus, n_unique_recipients = reach_union_consensus(votes, f=expected_n_byzantine_committee)
             union_consensus_ids = participant_ids[union_consensus]
 
             print('reached union consensous of size {}, with {} unique recipients'.format(
@@ -173,7 +178,7 @@ def main():
         elif args.aggregator == 'krum':
 
             print('collecting gradients from participants and running krum...')
-            krum_node_idx, krum_scores = krum(participants, f=len(byzantine_participants_ids))
+            krum_node_idx, krum_scores = krum(participants, f=expected_n_byzantine_participants)
             selected_node = participants[krum_node_idx]
 
             is_byzantine_selected = int(selected_node.id in byzantine_participants_ids)
@@ -192,7 +197,7 @@ def main():
         elif args.aggregator == 'trimmed-mean':
 
             print('collecting gradients from participants and running trimmed mean...')
-            trimmed_mean_grads = trimmed_mean(participants, f=len(byzantine_participants_ids))
+            trimmed_mean_grads = trimmed_mean(participants, f=expected_n_byzantine_participants)
 
             # simulate the step take by the trimmed mean gradient
             honest_participants = [n for n in participants if n.id not in byzantine_idx]

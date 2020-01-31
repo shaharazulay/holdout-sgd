@@ -22,8 +22,8 @@ def add_common_params(parser):
     parser.add_argument(
         '--momentum', 
         type=float, 
-        default=0.5, 
-        help='SGD momentum (default: 0.5)')
+        default=0,
+        help='SGD momentum (default: 0)')
     parser.add_argument(
         '--seed', 
         type=int, 
@@ -62,15 +62,15 @@ def add_decentralized_params(parser):
         default=30, 
         help='number of nodes selected as participants (default: 100)')        
     parser.add_argument(
-        '--internal-epochs',
-        type=int, 
-        default=3, 
-        help='number of epochs each node should take before the consensus round starts (default: 5)')  
-    parser.add_argument(
         '--byzantine',
         type=float, 
         default=0.0, 
-        help='% of byzantine nodes inside the node pool (default: 0, range: 0-1') 
+        help='% of actual byzantine nodes inside the node pool (default: 0, range: 0-1')
+    parser.add_argument(
+        '--expected-byzantine',
+        type=float,
+        default=0.0,
+        help='% of expected byzantine nodes inside the node pool (default: 0, range: 0-1')
     parser.add_argument(
         '--byzantine-mode',
         type=str, 
@@ -85,5 +85,5 @@ def add_decentralized_params(parser):
         '--aggregator',
         type=str,
         default='union-consensus',
-        choices=['union-consensus', 'krum', 'average'],
+        choices=['union-consensus', 'krum', 'average', 'trimmed-mean'],
         help='Choice of aggregator (default: union-consensus)')
