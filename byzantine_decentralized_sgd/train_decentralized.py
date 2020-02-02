@@ -12,7 +12,7 @@ from _data_utils import default_transform, MNISTSlice
 from _logic import *
 from _krum import krum, _distance
 from _average import get_average_gradients, get_std_gradients
-from _attack import setup_lp_norm_attack
+from _attack import setup_lp_norm_attack, byzantine_committee_vote
 from _trimmed_mean import trimmed_mean
 
         
@@ -151,8 +151,14 @@ def main():
             w_array = collect_participants_weights(participants)
 
             print('collecting votes from committee...')
-            votes = collect_committee_votes(committee, w_array, f=expected_n_byzantine_participants, multiprocess=True)
+            honest_committee = [n for n in committee if n.id not in byzantine_idx]
+            byzantine_committee = [n for n in committee if n.id  in byzantine_idx]
+
+            votes = collect_committee_votes(honest_committee, w_array, f=expected_n_byzantine_participants, multiprocess=True)
+            byzantine_vote = byzantine_committee_vote(participant_ids, byzantine_idx)
+            [votes.update({n.id: byzantine_vote}) for n in byzantine_committee]
             print("Votes:", dict([(k, participant_ids[v]) for k, v in votes.items()]))
+
             union_consensus, n_unique_recipients = reach_union_consensus(votes, f=expected_n_byzantine_committee)
             union_consensus_ids = participant_ids[union_consensus]
 
@@ -240,8 +246,7 @@ def main():
                 args, participants[0]._model, participants[0]._device, test_loader)
             test_accuracy.append({'accuracy': accuracy, 'popular_misses': popular_misses})
 
-    #plot_learning_curve(learning_curve, test_accuracy, n_participants=args.participants_size)
-    
+
     with open('raw_learning_curve__{}.json'.format(args.aggregator), 'w') as f_raw:
         json.dump(
             {
