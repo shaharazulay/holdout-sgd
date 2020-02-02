@@ -27,3 +27,12 @@ def setup_lp_norm_attack(participants, byzantine_idx, mu, std, w_before, f):
 	[n.setup_attack(mu, std, gamma_best) for n in participants if n.id in byzantine_idx]
 
 	return gamma_best
+
+
+def byzantine_committee_vote(participants, byzantine_idx, f):
+	byzantine_in_votes = [i for i, n in zip(range(len(participants)), participants) if n.id in byzantine_idx]
+	honset_in_votes = [i for i, n in zip(range(len(participants)), participants) if n.id not in byzantine_idx]
+	vote = byzantine_in_votes + list(np.random.choice(honset_in_votes, len(honset_in_votes), replace=False))
+
+	num_items_to_vote = len(participants) - f
+	return np.array(vote)[:num_items_to_vote]

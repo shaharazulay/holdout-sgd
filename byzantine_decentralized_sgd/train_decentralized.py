@@ -155,7 +155,7 @@ def main():
             byzantine_committee = [n for n in committee if n.id  in byzantine_idx]
 
             votes = collect_committee_votes(honest_committee, w_array, f=expected_n_byzantine_participants, multiprocess=True)
-            byzantine_vote = byzantine_committee_vote(participant_ids, byzantine_idx)
+            byzantine_vote = byzantine_committee_vote(participants, byzantine_idx, f=expected_n_byzantine_participants)
             [votes.update({n.id: byzantine_vote}) for n in byzantine_committee]
             print("Votes:", dict([(k, participant_ids[v]) for k, v in votes.items()]))
 
