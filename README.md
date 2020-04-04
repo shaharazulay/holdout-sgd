@@ -1,4 +1,2 @@
-# byzantine_decentralized_sgd
-Byzantine Decentralized SGD Optimization (Python Simulation)
-
-Pytorch + MSNIT based
+# HoldOut SGD
+Byzantine Resilient Federated Learning
