@@ -1,4 +1,4 @@
 pytorch==1.0.1.post2
 torchvision==0.2.0
 progressbar==2.5
-numpy==1.14.6
+numpy==1.22.0
